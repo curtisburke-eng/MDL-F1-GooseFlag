@@ -1,23 +1,28 @@
+// include libraries
 #include <Arduino.h>
 #include <wiringPi.h>
 #include <rc-switch/RCSwitch.h>
 
-#define MOTOR_STEP_PIN 1                                       // GPIO pin connected to stepper motor driver (step pin)
+// Define variables
+#define MOTOR_STEP_PIN 1                                      // GPIO pin connected to stepper motor driver (step pin)
 #define MOTOR_DIR_PIN 2                                       // GPIO pin connected to stepper motor driver (direction pin)
 #define STEPS_PER_REVOLUTION 200                              // Number of steps required for 1 full revolution of the stepper motor
 #define RF_RECEIVER_PIN 0                                     // GPIO pin connected to the RF receiver
 
 
+// Initializzation procedure (to be run once)
 void setup() {
     wiringPiSetup();
     pinMode(MOTOR_STEP_PIN, OUTPUT);
     pinMode(MOTOR_DIR_PIN, OUTPUT);
-
+    
     // Initialize RF receiver
     RCSwitch rfReceiver = RCSwitch();
     rfReceiver.enableReceive(RF_RECEIVER_PIN);
 }
 
+
+// Motion Control procedure (to be run on new RF signal)
 void rotateMotorFullRev(int numRotations) {
     digitalWrite(MOTOR_DIR_PIN, HIGH);                        // Set direction
 
@@ -26,13 +31,15 @@ void rotateMotorFullRev(int numRotations) {
       // Rotate motor 1 full revolution
       for (int j = 0; j < STEPS_PER_REVOLUTION; j++) {
           digitalWrite(MOTOR_STEP_PIN, HIGH);
-          delayMicroseconds(500);                               // Adjust delay for your motor
+          delayMicroseconds(500);                             // Adjust delay for your motor
           digitalWrite(MOTOR_STEP_PIN, LOW);
-          delayMicroseconds(500);                               // Adjust delay for your motor
+          delayMicroseconds(500);                             // Adjust delay for your motor
       }
     }
 }
 
+
+// Main executable
 int main() {
     // Run the setup procedure
     setup();
