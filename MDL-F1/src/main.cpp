@@ -8,8 +8,8 @@
 
 // Define DEBUG constants
 // --------------------------------------------------------------------------------------------------------------------
-#define DEBUG 1                                               // DEBUG true allows for Serial Output
-#define USE_CONFIG 1                                          // USE_CONFIG true uses the values stored on the SD card in the Ethernet Shield, 
+#define DEBUG true                                            // DEBUG true allows for Serial Output
+#define USE_CONFIG true                                       // USE_CONFIG true uses the values stored on the SD card in the Ethernet Shield, 
                                                               // USE_CONFIG false uses hardcoded values (for use after testing phase is completed)
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -25,10 +25,10 @@ int revsPerClick;
 
 
 // Variable initialization procedure (run once)
-void InitVars(int useConfig) {
+void InitVars(bool useConfig, bool debug) {
   if(useConfig){
     // Call the function to read the CSV file and assign values
-    readCSV(DEBUG);
+    readCSV(debug);
   }
   else{
     // Define the variables in code
@@ -38,9 +38,10 @@ void InitVars(int useConfig) {
 }
 
 // File reading procudure (run once)
-void readCSV(int debug) {
+void readCSV(bool debug) {
   // Open the CSV file
   File file = SD.open(CONFIG_FILE);
+  // Check for error opening the file
   if (!file) {
     if(debug) {
       Serial.println("Failed to open file!");
@@ -103,10 +104,9 @@ void setup() {
   }
 
   // Set the Variable values based on config file or hard-coded values
-  InitVars(USE_CONFIG);
+  InitVars(USE_CONFIG, DEBUG);
 
   // Configure the wiring setup/pinMode
-  wiringPiSetup();
   pinMode(MOTOR_STEP_PIN, OUTPUT);
   pinMode(MOTOR_DIR_PIN, OUTPUT);
   
