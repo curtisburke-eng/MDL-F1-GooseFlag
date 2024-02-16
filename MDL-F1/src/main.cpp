@@ -1,6 +1,5 @@
 // include libraries
 #include <Arduino.h>
-#include <wiringPi.h>
 #include <rc-switch/RCSwitch.h>
 #include <SPI.h>
 #include <Ethernet.h>
@@ -80,13 +79,13 @@ void readCSV(bool debug) {
 }
 
 // Motion Control procedure (run on each new RF input)
-void rotateMotorFullRev(int numRotations, int stepsPer) {
+void rotateMotor(int revs, int steps) {
     digitalWrite(MOTOR_DIR_PIN, HIGH);                        // Set direction
 
-    // Rotate 1 full rotation X times
-    for (int i = 0; i < numRotations; i++) {
-      // Rotate motor 1 full revolution
-      for (int j = 0; j < stepsPer; j++) {
+    // Rotate X times
+    for (int i = 0; i < revs; i++) {
+      // Rotate motor X steps
+      for (int j = 0; j < steps; j++) {
           digitalWrite(MOTOR_STEP_PIN, HIGH);
           delayMicroseconds(500);                             // Adjust delay for your motor
           digitalWrite(MOTOR_STEP_PIN, LOW);
@@ -135,8 +134,8 @@ int main() {
     while (true) {
       // New RF signal is detected
       if (digitalRead(RF_RECEIVER_PIN) == HIGH) {
-        // Rotate motor X full rotations
-        rotateMotorFullRev(revsPerClick, stepsPerRev);
+        // Rotate motor X times the number of steps provided
+        rotateMotor(revsPerClick, stepsPerRev);
         delay(100);                                           // Adjust delay for responsiveness
       }
     }
