@@ -15,25 +15,24 @@ void setup() {
 
   // If in debug mode, start serial comms
   if(unit.cmd.useSerialComms){
-    Serial.begin(9600);
+    Serial.begin(9600); 
   }
 
   // Initialize this unit's members
   unit.Init();
+  
 
 }
 // --------------------------------------------------------------------------------------------------------------------
 // Main executable
 void loop() {
   
-  // Create the stepper object from this unit's members
-  Stepper motor(unit.internal.stepsPerRev,unit.internal.motorDriverPinIN1,unit.internal.motorDriverPinIN2,unit.internal.motorDriverPinIN3,unit.internal.motorDriverPinIN4);
-  motor.setSpeed(unit.internal.rpm);
-
   // Check for new RF signal                              // TODO: Store the last RF signal and compare to it. Then if different from previous 
   if (digitalRead(unit.internal.rfReceiverPin) == HIGH) {
-    // Rotate motor X times the number of steps provided
-    motor.step(unit.internal.stepsPerRev);                // TODO: Encapsulate this in a for loop for numb of cycles 
+    // Rotate motor i times the number of steps provided
+    for (int i = 0; i < unit.internal.revsPerCycle; i++) {
+      unit.moveStepper1Rev();
+    }
     delay(100); // Adjust delay for responsiveness        // TODO: Could make the delay between cycles configurable
   }
 

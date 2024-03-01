@@ -20,6 +20,7 @@ void F1_typ::loadDefaultConfig() {
     internal.stepsPerRev = 200;                                         // Number of steps required for 1 full revolution of the stepper motor
     internal.revsPerCycle = 3;                                          // Number of times to complete a full revolution
     internal.rpm = 60;                                                  // The speed of rotation in revolutions per min.
+    internal.rotationDirection = 1;                                     // 1 or -1 for clockwise or counter-clockwise rotation
 
     // Define Pin Layout
     internal.motorDriverPinIN1 = 2;                                     // GPIO pin connected to stepper motor driver IN1 pin
@@ -53,6 +54,7 @@ void F1_typ::loadCustomConfig() {
     internal.stepsPerRev = json["stepsPerRev"];
     internal.revsPerCycle = json["revsPerCycle"];
     internal.rpm = json["rpm"];
+    internal.rotationDirection = json["rotationDirection"];
 
     // Define Pin Layout
     internal.motorDriverPinIN1 = json["motorDriverPinIN1"];
@@ -60,6 +62,7 @@ void F1_typ::loadCustomConfig() {
     internal.motorDriverPinIN3 = json["motorDriverPinIN3"];
     internal.motorDriverPinIN4 = json["motorDriverPinIN4"];
     internal.rfReceiverPin = json["rfReceiverPin"];
+    
 
     // Print values for confirmation
     if(cmd.useSerialComms){
@@ -84,7 +87,32 @@ void F1_typ::loadCustomConfig() {
         Serial.println(internal.revsPerCycle);
         Serial.print("Motor Speed (RPM): ");
         Serial.println(internal.rpm);
+        Serial.print("Motor Rotation Direction: ");
+        Serial.println(internal.rotationDirection);
         Serial.println("----------------------------");
         
     }
+}
+
+void F1_typ::moveStepper1Rev() {
+    // Determine the step increment based on direction (only allow 1 or -1)
+    int stepIncrement = (internal.rotationDirection == 1) ? 1 : -1;
+    // Calculate delay based on desired RPM
+    int delayBetweenSteps = 60000 / (internal.stepsPerRev * internal.rpm);          // 60000 is the number of milliseconds in a minute
+    
+    // Loop through steps
+    for (int j = 0; j < abs(internal.stepsPerRev); j++) {
+        // Determine the current step in the sequence
+        int stepIndex = (j % 4);
+
+        // Set the motor pins according to the step sequence
+        digitalWrite(internal.motorDriverPinIN1, internal.stepSequence[stepIndex][0]);
+        digitalWrite(internal.motorDriverPinIN2, internal.stepSequence[stepIndex][1]);
+        digitalWrite(internal.motorDriverPinIN3, internal.stepSequence[stepIndex][2]);
+        digitalWrite(internal.motorDriverPinIN4, internal.stepSequence[stepIndex][3]);
+
+        // Delay to control motor speed based on rpm input
+        delay(delayBetweenSteps); 
+    }
+
 }

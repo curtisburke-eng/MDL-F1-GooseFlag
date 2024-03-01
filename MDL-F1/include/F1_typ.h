@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <SD.h>
-#include <Stepper.h>
 
 class F1_typ 
 {
@@ -16,6 +15,9 @@ public:
     
     // Class Functions
     void Init();
+    void moveStepper1Rev();
+
+private:
     void loadDefaultConfig();
     void loadCustomConfig();
 };
@@ -49,6 +51,14 @@ struct F1_internal_typ
     int stepsPerRev;                                            // The number of steps for a given motor to complete one full revolution
     int revsPerCycle;                                           // The number of revolutions desired for one cycle (1 cycle being started by an RF input)
     int rpm;                                                    // The speed of rotation in revolutions per min.
+    int rotationDirection;                                      // 1 or -1 for clockwise or counter-clockwise rotation
+
+    const int stepSequence[4][4] = {
+        {HIGH, LOW, LOW, HIGH},
+        {HIGH, HIGH, LOW, LOW},
+        {LOW, HIGH, HIGH, LOW},
+        {LOW, LOW, HIGH, HIGH}
+    };
 };
 
 
