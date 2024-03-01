@@ -2,7 +2,7 @@
 
 void F1_typ::Init() {
     
-    if(mode.useCustomConfig){
+    if(mode.customConfig){
         // Assign values based on json file inputs
         loadCustomConfig();
     }
@@ -65,7 +65,7 @@ void F1_typ::loadCustomConfig() {
     
 
     // Print values for confirmation
-    if(mode.useSerialComms){
+    if(mode.serialComms){
         Serial.println("----------------------------");
         Serial.println("CUSTOM CONFIGURATION LOADED");
         Serial.println("----------------------------");
