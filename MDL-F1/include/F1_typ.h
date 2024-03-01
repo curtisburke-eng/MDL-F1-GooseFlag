@@ -9,8 +9,7 @@ class F1_typ
 {
 public:
     // Member Structures
-    F1_command_typ cmd;
-    F1_status_typ status;
+    F1_mode_typ mode;
     F1_internal_typ internal;
     
     // Class Functions
@@ -22,9 +21,9 @@ private:
     void loadCustomConfig();
 };
 
-struct F1_command_typ
+struct F1_mode_typ
 {
-    // Commands
+    // Command for desired Modes
     bool useSerialComms;                                        // Command for determining if Serial output is to be used
     bool useCustomConfig;                                       // Command for determining the source of initial values for all configurable variables
 };

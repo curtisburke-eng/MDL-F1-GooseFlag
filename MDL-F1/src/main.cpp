@@ -10,11 +10,11 @@ F1_typ unit;
 void setup() {
   // Set up pre-initialization variables
   unit.internal.configFileName = "config.json";
-  unit.cmd.useSerialComms = 1;
-  unit.cmd.useCustomConfig = 1;
+  unit.mode.useSerialComms = 1;
+  unit.mode.useCustomConfig = 1;
 
   // If in debug mode, start serial comms
-  if(unit.cmd.useSerialComms){
+  if(unit.mode.useSerialComms){
     Serial.begin(9600); 
   }
 
