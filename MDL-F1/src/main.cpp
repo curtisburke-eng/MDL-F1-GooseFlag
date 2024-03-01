@@ -1,15 +1,9 @@
 // include libraries
 #include <Arduino.h>
-#include <SPI.h>
-
-
 #include "F1_typ.h"
 
+// Declare global variables/objects
 F1_typ unit;
-
-unit.internal.configFileName = "configuration.csv";
-unit.cmd.useSerialComms = 1;
-unit.cmd.useConfig = 1;
 
 // --------------------------------------------------------------------------------------------------------------------
 // Initializzation procedure (to be run once)

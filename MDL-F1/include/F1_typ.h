@@ -1,7 +1,10 @@
 #ifndef F1_TYP_H
 #define F1_TYP_H
 
-#include <string>
+#include <Arduino.h>
+#include <ArduinoJson.h>
+#include <SD.h>
+#include <Stepper.h>
 
 class F1_typ 
 {
