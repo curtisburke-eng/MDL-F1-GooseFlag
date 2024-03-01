@@ -9,11 +9,12 @@
 class F1_typ 
 {
 public:
-    // Structs
+    // Member Structures
     F1_command_typ cmd;
     F1_status_typ status;
     F1_internal_typ internal;
-
+    
+    // Class Functions
     void Init();
     void loadDefaultConfig();
     void loadCustomConfig();
