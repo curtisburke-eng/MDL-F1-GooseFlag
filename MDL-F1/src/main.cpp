@@ -6,33 +6,38 @@
 F1_typ unit;
 
 // --------------------------------------------------------------------------------------------------------------------
-// Initializzation procedure (to be run once)
+// Initialization procedure (to be run once)
 void setup() {
+  // Set up pre-initialization variables
+  unit.internal.configFileName = "config.json";
+  unit.cmd.useSerialComms = 1;
+  unit.cmd.useCustomConfig = 1;
+
   // If in debug mode, start serial comms
   if(unit.cmd.useSerialComms){
     Serial.begin(9600);
   }
 
-  // Initialize this unit
-  Init(&unit);
+  // Initialize this unit's members
+  unit.Init();
 
 }
 // --------------------------------------------------------------------------------------------------------------------
 // Main executable
-int main() {
-    // Run the setup procedure
-    setup();
+void loop() {
+  
+  // Create the stepper object from this unit's members
+  Stepper motor(unit.internal.stepsPerRev,unit.internal.motorDriverPinIN1,unit.internal.motorDriverPinIN2,unit.internal.motorDriverPinIN3,unit.internal.motorDriverPinIN4);
+  motor.setSpeed(unit.internal.rpm);
 
-    // Start infinite loop
-    while (true) {
-      // New RF signal is detected
-      if (digitalRead(unit.internal.rfReceiver.value) == HIGH) {
-        // Rotate motor X times the number of steps provided
-        rotateMotor(&unit);
-        delay(100);                                           // Adjust delay for responsiveness
-      }
-    }
+  // Check for new RF signal 
+  if (digitalRead(unit.internal.rfReceiverPin) == HIGH) {
+    // Rotate motor X times the number of steps provided
+    motor.step(unit.internal.stepsPerRev);
+    delay(100);                                           // Adjust delay for responsiveness
+  }
 
-    return 0;
+
+  return;
 }
 // --------------------------------------------------------------------------------------------------------------------
