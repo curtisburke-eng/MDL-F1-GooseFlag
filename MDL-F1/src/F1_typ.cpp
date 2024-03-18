@@ -65,7 +65,7 @@ void F1_typ::loadCustomConfig() {
     
 
     // Print values for confirmation
-    if(mode.serialComms){
+    if(mode.useSerialComms){
         Serial.println("----------------------------");
         Serial.println("CUSTOM CONFIGURATION LOADED");
         Serial.println("----------------------------");

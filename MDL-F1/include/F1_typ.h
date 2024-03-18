@@ -24,7 +24,7 @@ private:
 struct F1_mode_typ
 {
     // Commands for desired Modes
-    bool serialComms;                                        // Command for determining if Serial output is to be used
+    bool useSerialComms;                                        // Command for determining if Serial output is to be used
     bool customConfig;                                       // Command for determining the source of initial values for all configurable variables
     bool useTimer;
 };
