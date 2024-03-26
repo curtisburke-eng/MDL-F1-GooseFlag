@@ -1,11 +1,18 @@
 {
     "stepsPerRev" :  200,
     "revsPerCycle":  3,
+    "secBetweenCycles": 10,
     "rpm": 60,
+    "rotationDirection": 1,
     
     "motorDriverPinIN1": 2,
     "motorDriverPinIN2": 3,
     "motorDriverPinIN3": 4,
     "motorDriverPinIN4": 5,
-    "rfReceiverPin": 8
+    "rfReceiverPin": 8,
+
+    "useSerialComms": 0,
+    "useCycleTimer": 1,
+    "runContinuous": 0,
+    "turnOffEachCycle": 0
 }

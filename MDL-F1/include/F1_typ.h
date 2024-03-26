@@ -25,8 +25,10 @@ struct F1_mode_typ
 {
     // Commands for desired Modes
     bool useSerialComms;                                        // Command for determining if Serial output is to be used
-    bool customConfig;                                       // Command for determining the source of initial values for all configurable variables
-    bool useTimer;
+    bool customConfig;                                          // Command for determining the source of initial values for all configurable variables
+    bool useCycleTimer;                                         // Mode where RF "ON" signal starts a cycle and a timer, cycles repeat at interval set by timer, Off stops next cycle from completing
+    bool runContinuous;                                         // Mode where RF "ON" signal starts motion and "OFF" signal stops motion (at zero point)
+    bool turnOffEachCycle;                                      // Mode where RF "ON" signal completes a single cycle, another cycle will not complete until the "OFF" signal is seen AND a new "ON" signal is recieved 
 };
 
 struct F1_status_typ
@@ -50,6 +52,7 @@ struct F1_internal_typ
     // Motor Configuration variables
     int stepsPerRev;                                            // The number of steps for a given motor to complete one full revolution
     int revsPerCycle;                                           // The number of revolutions desired for one cycle (1 cycle being started by an RF input)
+    int secBetweenCycles;                                       // The number of seconds between cycles (used in CycleTimer Mode)
     int rpm;                                                    // The speed of rotation in revolutions per min.
     int rotationDirection;                                      // 1 or -1 for clockwise or counter-clockwise rotation
 
@@ -59,6 +62,7 @@ struct F1_internal_typ
         {LOW, HIGH, HIGH, LOW},
         {LOW, LOW, HIGH, HIGH}
     };
+
 };
 
 

@@ -28,6 +28,14 @@ void F1_typ::loadDefaultConfig() {
     internal.motorDriverPinIN3 = 4;                                     // GPIO pin connected to stepper motor driver IN3 pin
     internal.motorDriverPinIN4 = 5;                                     // GPIO pin connected to stepper motor driver IN4 pin
     internal.rfReceiverPin = 8;                                         // GPIO pin connected to RF controller output
+    // Define Mode(s)
+    mode.useSerialComms = 0;
+    // ONLY 1 of the following can be true at any given time
+    mode.useCycleTimer = 1;
+    mode.runContinuous = 0;
+    mode.turnOffEachCycle = 0;
+
+    internal.secBetweenCycles = 10;                                     // The number of seconds between cycles (used in CycleTimer Mode)
 
     return;
 }
@@ -50,9 +58,12 @@ void F1_typ::loadCustomConfig() {
     }
 
     // --- Parse values from file ---
+    // TODO: There should be some checking for if the value exists, and setting to default if not
+
     // Motor configurable values
     internal.stepsPerRev = json["stepsPerRev"];
     internal.revsPerCycle = json["revsPerCycle"];
+    internal.secBetweenCycles = json["secBetweenCycles"];
     internal.rpm = json["rpm"];
     internal.rotationDirection = json["rotationDirection"];
 
@@ -63,12 +74,18 @@ void F1_typ::loadCustomConfig() {
     internal.motorDriverPinIN4 = json["motorDriverPinIN4"];
     internal.rfReceiverPin = json["rfReceiverPin"];
     
+    // Define Mode
+    mode.useSerialComms = json["useSerialComms"];
+    mode.useCycleTimer = json["useCycleTimer"];
+    mode.runContinuous = json["runContinuous"];
+    mode.turnOffEachCycle = json["turnOffEachCycle"];
 
     // Print values for confirmation
     if(mode.useSerialComms){
         Serial.println("----------------------------");
         Serial.println("CUSTOM CONFIGURATION LOADED");
         Serial.println("----------------------------");
+        // Pin Layout
         Serial.print("Motor Driver Pin IN1: ");
         Serial.println(internal.motorDriverPinIN1);
         Serial.print("Motor Driver Pin IN2: ");
@@ -77,18 +94,30 @@ void F1_typ::loadCustomConfig() {
         Serial.println(internal.motorDriverPinIN3);
         Serial.print("Motor Driver Pin IN4: ");
         Serial.println(internal.motorDriverPinIN4);
-        Serial.println();
         Serial.print("RF Receiver Pin: ");
         Serial.println(internal.rfReceiverPin);
+        // Motor Params
         Serial.println();
         Serial.print("Steps per Revolution: ");
         Serial.println(internal.stepsPerRev);
         Serial.print("Revolutions per Cycle: ");
         Serial.println(internal.revsPerCycle);
+        Serial.print("Seconds between Cycles: ");
+        Serial.println(internal.secBetweenCycles);
         Serial.print("Motor Speed (RPM): ");
         Serial.println(internal.rpm);
         Serial.print("Motor Rotation Direction: ");
         Serial.println(internal.rotationDirection);
+        // Modes
+        Serial.println();
+        Serial.print("Use Serial Comms: ");                     // won't see this if not...
+        Serial.println(mode.useSerialComms);
+        Serial.print("Use Cycle Timer Mode: ");
+        Serial.println(mode.useCycleTimer);
+        Serial.print("Use Continuous Mode: ");
+        Serial.println(mode.runContinuous);
+        Serial.print("Use ON/OFF Mode: ");
+        Serial.println(mode.turnOffEachCycle);
         Serial.println("----------------------------");
         
     }
