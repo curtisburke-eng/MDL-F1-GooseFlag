@@ -20,6 +20,7 @@ public:
 private:
     void loadDefaultConfig();
     void loadCustomConfig();
+    void checkMode();
 };
 
 struct F1_mode_typ

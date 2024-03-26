@@ -26,19 +26,28 @@ void setup() {
 // Main executable
 void loop() {
   
-  // Check for new RF signal                              // TODO: Store the last RF signal and compare to it. Then if different from previous 
-  if (digitalRead(unit.internal.rfReceiverPin) == HIGH) {
-    // Rotate motor i times the number of steps provided
-    for (int i = 0; i < unit.internal.revsPerCycle; i++) {
-      unit.moveStepper1Rev();
-    }
-    delay(100); // Adjust delay for responsiveness        // TODO: Could make the delay between cycles configurable
+  // Get the new RF signal
+  unit.status.rfSignal = digitalRead(unit.internal.rfReceiverPin);
+
+  if (unit.status.rfSignal == HIGH) {
+    
+    switch (unit.status.modeNum) {
+      case 0: // Mode: useCycleTimer
+        break;
+
+      case 1: // Mode: runContinuously
+        break;
+      
+      case 2: // Mode: turnOffEachCycle
+        break;
+      
+      case -1: // Error 
+        break;
+      }
   }
 
-
-  // TODO: change command and status to mode type
-  // TODO: add useTimer and useOnOff modes
-  // TODO: add a check such that both modes cannot be true
+  // Update the last scan value
+  unit.status.rfSignal_ = unit.status.rfSignal;
 
   return;
 }

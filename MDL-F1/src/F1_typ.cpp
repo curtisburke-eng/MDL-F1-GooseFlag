@@ -11,6 +11,9 @@ void F1_typ::Init() {
         loadDefaultConfig();
     }
 
+    // Check that only 1 mode is acitve
+    checkMode();
+
     return;
 }
 
@@ -130,7 +133,42 @@ void F1_typ::loadCustomConfig() {
     }
 }
 
-void F1_typ::moveStepper1Rev() {
+void F1_typ::checkMode() {
+    if(status.isConfigured){
+        // Only 1 mode can be true at a given time
+        // Check if all three modes are true or If any combination of two modes are true
+        if((mode.runContinuous && mode.turnOffEachCycle && mode.useCycleTimer) ||
+            (mode.runContinuous && mode.turnOffEachCycle) ||
+            (mode.runContinuous && mode.useCycleTimer) ||
+            (mode.turnOffEachCycle && mode.useCycleTimer)   ) {
+
+            // Use default mode
+            mode.useCycleTimer = 1;
+            mode.runContinuous = 0;
+            mode.turnOffEachCycle = 0;
+        }
+        
+        // Set the mode number based on the bool states
+        if(mode.useCycleTimer) {
+            status.modeNum = 0;
+        }
+        else if(mode.runContinuous) {
+            status.modeNum = 1;
+        }
+        else if(mode.turnOffEachCycle) {
+            status.modeNum = 2;
+        }
+        else {
+            status.modeNum = -1;
+            status.error = 1;
+        }
+        
+    }
+    else {
+        status.error = 1;
+    }
+}
+
     // Determine the step increment based on direction (only allow 1 or -1)
     int stepIncrement = (internal.rotationDirection == 1) ? 1 : -1;
     // Calculate delay based on desired RPM
