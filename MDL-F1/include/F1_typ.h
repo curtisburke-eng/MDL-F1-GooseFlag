@@ -15,7 +15,8 @@ public:
     
     // Class Functions
     void Init();
-    void moveStepper1Rev();
+    void run1Rev();
+    void runCycle();
 
 private:
     void loadDefaultConfig();
