@@ -5,24 +5,6 @@
 #include <ArduinoJson.h>
 #include <SD.h>
 
-class F1_typ 
-{
-public:
-    // Member Structures
-    F1_mode_typ mode;
-    F1_status_typ status; 
-    F1_internal_typ internal;
-    
-    // Class Functions
-    void Init();
-    void run1Rev();
-    void runCycle();
-
-private:
-    void loadDefaultConfig();
-    void loadCustomConfig();
-    void checkMode();
-};
 
 struct F1_mode_typ
 {
@@ -63,15 +45,40 @@ struct F1_internal_typ
     int rpm;                                                    // The speed of rotation in revolutions per min.
     int rotationDirection;                                      // 1 or -1 for clockwise or counter-clockwise rotation
 
+    /*
     const int stepSequence[4][4] = {
         {HIGH, LOW, LOW, HIGH},
         {HIGH, HIGH, LOW, LOW},
         {LOW, HIGH, HIGH, LOW},
         {LOW, LOW, HIGH, HIGH}
     };
+    */
+   const int stepSequence[4][4] = {
+        {HIGH, LOW, LOW, LOW},
+        {LOW, HIGH, LOW, LOW},
+        {LOW, LOW, HIGH, LOW},
+        {LOW, LOW, LOW, HIGH}
+    };
 
 };
 
+class F1_typ 
+{
+public:
+    // Member Structures
+    F1_mode_typ mode;
+    F1_status_typ status; 
+    F1_internal_typ internal;
+    
+    // Class Functions
+    void Init();
+    void run1Rev();
+    void runCycle();
 
+private:
+    void loadDefaultConfig();
+    void loadCustomConfig();
+    void checkMode();
+};
 
 #endif // F1_TYP_H
