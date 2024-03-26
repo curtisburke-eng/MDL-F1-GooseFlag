@@ -20,7 +20,7 @@ void setup() {
   // Initialize this unit's members
   unit.status.isConfigured = 0;
   unit.Init();
-
+  
 }
 // --------------------------------------------------------------------------------------------------------------------
 // Main executable
@@ -33,15 +33,27 @@ void loop() {
     
     switch (unit.status.modeNum) {
       case 0: // Mode: useCycleTimer
+        unit.runCycle();
+        delay(unit.internal.secBetweenCycles*1000);
         break;
 
       case 1: // Mode: runContinuously
+        unit.run1Rev();
+        delay(10); 
         break;
       
       case 2: // Mode: turnOffEachCycle
+        // Check that the HIGH signal is a new signal (compared to the last scan)
+        if(unit.status.rfSignal_ == LOW) {
+          unit.runCycle();
+        }
         break;
       
       case -1: // Error 
+        if(unit.mode.useSerialComms) {
+          Serial.println("Error State");
+          unit.status.error = 1;
+        }
         break;
       }
   }
