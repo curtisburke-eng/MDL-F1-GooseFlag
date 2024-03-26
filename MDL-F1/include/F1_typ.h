@@ -10,6 +10,7 @@ class F1_typ
 public:
     // Member Structures
     F1_mode_typ mode;
+    F1_status_typ status; 
     F1_internal_typ internal;
     
     // Class Functions
@@ -34,7 +35,11 @@ struct F1_mode_typ
 struct F1_status_typ
 {
     // Statuses
-    bool error;
+    bool isConfigured;                                          // The state of the configuration
+    int modeNum;                                                // Number to indicate which mode is active
+    bool error;                                                 // The error state 
+    bool rfSignal;                                              // The current state of the digital read on the rfReceiverPin
+    bool rfSignal_;                                             // The last scan state of the digital read on the rfReceiverPin
 };
 
 struct F1_internal_typ

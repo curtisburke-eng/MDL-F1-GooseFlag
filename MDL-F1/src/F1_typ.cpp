@@ -28,6 +28,7 @@ void F1_typ::loadDefaultConfig() {
     internal.motorDriverPinIN3 = 4;                                     // GPIO pin connected to stepper motor driver IN3 pin
     internal.motorDriverPinIN4 = 5;                                     // GPIO pin connected to stepper motor driver IN4 pin
     internal.rfReceiverPin = 8;                                         // GPIO pin connected to RF controller output
+
     // Define Mode(s)
     mode.useSerialComms = 0;
     // ONLY 1 of the following can be true at any given time
@@ -36,6 +37,9 @@ void F1_typ::loadDefaultConfig() {
     mode.turnOffEachCycle = 0;
 
     internal.secBetweenCycles = 10;                                     // The number of seconds between cycles (used in CycleTimer Mode)
+
+    // Set configured status
+    status.isConfigured = 1;                                            
 
     return;
 }
@@ -79,6 +83,9 @@ void F1_typ::loadCustomConfig() {
     mode.useCycleTimer = json["useCycleTimer"];
     mode.runContinuous = json["runContinuous"];
     mode.turnOffEachCycle = json["turnOffEachCycle"];
+    
+    // Set configured status
+    status.isConfigured = 1;
 
     // Print values for confirmation
     if(mode.useSerialComms){
