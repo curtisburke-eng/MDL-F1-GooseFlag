@@ -10,36 +10,56 @@ F1_typ unit;
 void setup() {
   // Set up pre-initialization variables
   unit.internal.configFileName = "config.json";
-  unit.cmd.useSerialComms = 1;
-  unit.cmd.useCustomConfig = 1;
+  unit.mode.customConfig = 1;
 
   // If in debug mode, start serial comms
-  if(unit.cmd.useSerialComms){
+  if(unit.mode.useSerialComms){
     Serial.begin(9600); 
   }
 
   // Initialize this unit's members
+  unit.status.isConfigured = 0;
   unit.Init();
   
-
 }
 // --------------------------------------------------------------------------------------------------------------------
 // Main executable
 void loop() {
   
-  // Check for new RF signal                              // TODO: Store the last RF signal and compare to it. Then if different from previous 
-  if (digitalRead(unit.internal.rfReceiverPin) == HIGH) {
-    // Rotate motor i times the number of steps provided
-    for (int i = 0; i < unit.internal.revsPerCycle; i++) {
-      unit.moveStepper1Rev();
-    }
-    delay(100); // Adjust delay for responsiveness        // TODO: Could make the delay between cycles configurable
+  // Get the new RF signal
+  unit.status.rfSignal = digitalRead(unit.internal.rfReceiverPin);
+
+  if (unit.status.rfSignal == HIGH) {
+    
+    switch (unit.status.modeNum) {
+      case 0: // Mode: useCycleTimer
+        unit.runCycle();
+        delay(unit.internal.secBetweenCycles*1000);
+        break;
+
+      case 1: // Mode: runContinuously
+        unit.run1Rev();
+        delay(10); 
+        break;
+      
+      case 2: // Mode: turnOffEachCycle
+        // Check that the HIGH signal is a new signal (compared to the last scan)
+        if(unit.status.rfSignal_ == LOW) {
+          unit.runCycle();
+        }
+        break;
+      
+      case -1: // Error 
+        if(unit.mode.useSerialComms) {
+          Serial.println("Error State");
+          unit.status.error = 1;
+        }
+        break;
+      }
   }
 
-
-  // TODO: change command and status to mode type
-  // TODO: add useTimer and useOnOff modes
-  // TODO: add a check such that both modes cannot be true
+  // Update the last scan value
+  unit.status.rfSignal_ = unit.status.rfSignal;
 
   return;
 }

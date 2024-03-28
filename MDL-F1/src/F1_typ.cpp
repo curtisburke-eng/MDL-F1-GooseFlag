@@ -2,7 +2,7 @@
 
 void F1_typ::Init() {
     
-    if(cmd.useCustomConfig){
+    if(mode.customConfig){
         // Assign values based on json file inputs
         loadCustomConfig();
     }
@@ -10,6 +10,14 @@ void F1_typ::Init() {
         // Assign values based on hardcoded inputs
         loadDefaultConfig();
     }
+
+    pinMode(internal.motorDriverPinIN1, OUTPUT);
+    pinMode(internal.motorDriverPinIN2, OUTPUT);
+    pinMode(internal.motorDriverPinIN3, OUTPUT);
+    pinMode(internal.motorDriverPinIN4, OUTPUT);
+
+    // Check that only 1 mode is acitve
+    checkMode();
 
     return;
 }
@@ -28,6 +36,18 @@ void F1_typ::loadDefaultConfig() {
     internal.motorDriverPinIN3 = 4;                                     // GPIO pin connected to stepper motor driver IN3 pin
     internal.motorDriverPinIN4 = 5;                                     // GPIO pin connected to stepper motor driver IN4 pin
     internal.rfReceiverPin = 8;                                         // GPIO pin connected to RF controller output
+
+    // Define Mode(s)
+    mode.useSerialComms = 0;
+    // ONLY 1 of the following can be true at any given time
+    mode.useCycleTimer = 1;
+    mode.runContinuous = 0;
+    mode.turnOffEachCycle = 0;
+
+    internal.secBetweenCycles = 10;                                     // The number of seconds between cycles (used in CycleTimer Mode)
+
+    // Set configured status
+    status.isConfigured = 1;                                            
 
     return;
 }
@@ -50,25 +70,37 @@ void F1_typ::loadCustomConfig() {
     }
 
     // --- Parse values from file ---
+    // TODO: There should be some checking for if the value exists, and setting to default if not
+
     // Motor configurable values
     internal.stepsPerRev = json["stepsPerRev"];
     internal.revsPerCycle = json["revsPerCycle"];
+    internal.secBetweenCycles = json["secBetweenCycles"];
     internal.rpm = json["rpm"];
     internal.rotationDirection = json["rotationDirection"];
-
+    
     // Define Pin Layout
     internal.motorDriverPinIN1 = json["motorDriverPinIN1"];
     internal.motorDriverPinIN2 = json["motorDriverPinIN2"];
     internal.motorDriverPinIN3 = json["motorDriverPinIN3"];
     internal.motorDriverPinIN4 = json["motorDriverPinIN4"];
     internal.rfReceiverPin = json["rfReceiverPin"];
+
+    // Define Mode
+    mode.useSerialComms = json["useSerialComms"];
+    mode.useCycleTimer = json["useCycleTimer"];
+    mode.runContinuous = json["runContinuous"];
+    mode.turnOffEachCycle = json["turnOffEachCycle"];
     
+    // Set configured status
+    status.isConfigured = 1;
 
     // Print values for confirmation
-    if(cmd.useSerialComms){
+    if(mode.useSerialComms){
         Serial.println("----------------------------");
         Serial.println("CUSTOM CONFIGURATION LOADED");
         Serial.println("----------------------------");
+        // Pin Layout
         Serial.print("Motor Driver Pin IN1: ");
         Serial.println(internal.motorDriverPinIN1);
         Serial.print("Motor Driver Pin IN2: ");
@@ -77,42 +109,104 @@ void F1_typ::loadCustomConfig() {
         Serial.println(internal.motorDriverPinIN3);
         Serial.print("Motor Driver Pin IN4: ");
         Serial.println(internal.motorDriverPinIN4);
-        Serial.println();
         Serial.print("RF Receiver Pin: ");
         Serial.println(internal.rfReceiverPin);
+        // Motor Params
         Serial.println();
         Serial.print("Steps per Revolution: ");
         Serial.println(internal.stepsPerRev);
         Serial.print("Revolutions per Cycle: ");
         Serial.println(internal.revsPerCycle);
+        Serial.print("Seconds between Cycles: ");
+        Serial.println(internal.secBetweenCycles);
         Serial.print("Motor Speed (RPM): ");
         Serial.println(internal.rpm);
         Serial.print("Motor Rotation Direction: ");
         Serial.println(internal.rotationDirection);
+        // Modes
+        Serial.println();
+        Serial.print("Use Serial Comms: ");                     // won't see this if not...
+        Serial.println(mode.useSerialComms);
+        Serial.print("Use Cycle Timer Mode: ");
+        Serial.println(mode.useCycleTimer);
+        Serial.print("Use Continuous Mode: ");
+        Serial.println(mode.runContinuous);
+        Serial.print("Use ON/OFF Mode: ");
+        Serial.println(mode.turnOffEachCycle);
         Serial.println("----------------------------");
         
     }
 }
 
-void F1_typ::moveStepper1Rev() {
-    // Determine the step increment based on direction (only allow 1 or -1)
-    int stepIncrement = (internal.rotationDirection == 1) ? 1 : -1;
-    // Calculate delay based on desired RPM
-    int delayBetweenSteps = 60000 / (internal.stepsPerRev * internal.rpm);          // 60000 is the number of milliseconds in a minute
-    
-    // Loop through steps
-    for (int j = 0; j < abs(internal.stepsPerRev); j++) {
-        // Determine the current step in the sequence
-        int stepIndex = (j % 4);
+void F1_typ::checkMode() {
+    if(status.isConfigured){
+        // Only 1 mode can be true at a given time
+        // Check if all three modes are true or If any combination of two modes are true
+        if((mode.runContinuous && mode.turnOffEachCycle && mode.useCycleTimer) ||
+            (mode.runContinuous && mode.turnOffEachCycle) ||
+            (mode.runContinuous && mode.useCycleTimer) ||
+            (mode.turnOffEachCycle && mode.useCycleTimer)   ) {
 
-        // Set the motor pins according to the step sequence
-        digitalWrite(internal.motorDriverPinIN1, internal.stepSequence[stepIndex][0]);
-        digitalWrite(internal.motorDriverPinIN2, internal.stepSequence[stepIndex][1]);
-        digitalWrite(internal.motorDriverPinIN3, internal.stepSequence[stepIndex][2]);
-        digitalWrite(internal.motorDriverPinIN4, internal.stepSequence[stepIndex][3]);
+            // Use default mode
+            mode.useCycleTimer = 1;
+            mode.runContinuous = 0;
+            mode.turnOffEachCycle = 0;
+        }
+        
+        // Set the mode number based on the bool states
+        if(mode.useCycleTimer) {
+            status.modeNum = 0;
+        }
+        else if(mode.runContinuous) {
+            status.modeNum = 1;
+        }
+        else if(mode.turnOffEachCycle) {
+            status.modeNum = 2;
+        }
+        else {
+            status.modeNum = -1;
+            status.error = 1;
+        }
+        
+    }
+    else {
+        status.error = 1;
+    }
+}
 
-        // Delay to control motor speed based on rpm input
-        delay(delayBetweenSteps); 
+void F1_typ::run1Rev() {
+    if(status.isConfigured) {
+        // Determine the step increment based on direction (only allow 1 or -1)
+        int stepIncrement = (internal.rotationDirection == 1) ? 1 : -1;
+        // Calculate delay based on desired RPM
+        int delayBetweenSteps = 60000 / (internal.stepsPerRev * internal.rpm);          // 60000 is the number of milliseconds in a minute
+        
+        // Loop through steps
+        for (int j = 0; j < abs(internal.stepsPerRev); j++) {
+            // Determine the current step in the sequence
+            int stepIndex = (j % 4);
+
+            // Set the motor pins according to the step sequence
+            digitalWrite(internal.motorDriverPinIN1, internal.stepSequence[stepIndex][0]);
+            digitalWrite(internal.motorDriverPinIN2, internal.stepSequence[stepIndex][1]);
+            digitalWrite(internal.motorDriverPinIN3, internal.stepSequence[stepIndex][2]);
+            digitalWrite(internal.motorDriverPinIN4, internal.stepSequence[stepIndex][3]);
+
+            // Delay to control motor speed based on rpm input
+            delay(delayBetweenSteps); 
+        }
+    } 
+    else {
+        // Throw an error if not configured
+        status.error = 1;
     }
 
+}
+
+void F1_typ::runCycle() {
+    if(status.isConfigured){
+        for(int i = 0; i<internal.revsPerCycle; i++) {
+            run1Rev();
+        }
+    }
 }
