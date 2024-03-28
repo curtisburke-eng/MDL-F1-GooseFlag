@@ -11,6 +11,11 @@ void F1_typ::Init() {
         loadDefaultConfig();
     }
 
+    pinMode(internal.motorDriverPinIN1, OUTPUT);
+    pinMode(internal.motorDriverPinIN2, OUTPUT);
+    pinMode(internal.motorDriverPinIN3, OUTPUT);
+    pinMode(internal.motorDriverPinIN4, OUTPUT);
+
     // Check that only 1 mode is acitve
     checkMode();
 
