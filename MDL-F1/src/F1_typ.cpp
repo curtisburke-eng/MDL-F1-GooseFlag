@@ -10,6 +10,11 @@ void F1_typ::Init() {
         // Assign values based on hardcoded inputs
         loadDefaultConfig();
     }
+    // Set pin mode for inputs/outputs
+    //pinMode(internal.motorDriver.enablePin, OUTPUT);
+    pinMode(internal.motorDriver.directionPin, OUTPUT);
+    pinMode(internal.motorDriver.stepPin, OUTPUT);
+    pinMode(internal.rfReceiverPin, INPUT);
 
     pinMode(internal.motorDriverPinIN1, OUTPUT);
     pinMode(internal.motorDriverPinIN2, OUTPUT);
@@ -76,14 +81,13 @@ void F1_typ::loadCustomConfig() {
     internal.stepsPerRev = json["stepsPerRev"];
     internal.revsPerCycle = json["revsPerCycle"];
     internal.secBetweenCycles = json["secBetweenCycles"];
-    internal.rpm = json["rpm"];
+    internal.delayBetweenSteps = json["delayBetweenSteps"];
     internal.rotationDirection = json["rotationDirection"];
     
     // Define Pin Layout
-    internal.motorDriverPinIN1 = json["motorDriverPinIN1"];
-    internal.motorDriverPinIN2 = json["motorDriverPinIN2"];
-    internal.motorDriverPinIN3 = json["motorDriverPinIN3"];
-    internal.motorDriverPinIN4 = json["motorDriverPinIN4"];
+    internal.motorDriver.enablePin = json["motorDriver.enablePin"];
+    internal.motorDriver.directionPin = json["motorDriver.directionPin"];
+    internal.motorDriver.stepPin = json["motorDriver.stepPin"];
     internal.rfReceiverPin = json["rfReceiverPin"];
 
     // Define Mode
@@ -91,6 +95,8 @@ void F1_typ::loadCustomConfig() {
     mode.useCycleTimer = json["useCycleTimer"];
     mode.runContinuous = json["runContinuous"];
     mode.turnOffEachCycle = json["turnOffEachCycle"];
+    
+    file.close(); 
     
     // Set configured status
     status.isConfigured = 1;
@@ -101,14 +107,12 @@ void F1_typ::loadCustomConfig() {
         Serial.println("CUSTOM CONFIGURATION LOADED");
         Serial.println("----------------------------");
         // Pin Layout
-        Serial.print("Motor Driver Pin IN1: ");
-        Serial.println(internal.motorDriverPinIN1);
-        Serial.print("Motor Driver Pin IN2: ");
-        Serial.println(internal.motorDriverPinIN2);
-        Serial.print("Motor Driver Pin IN3: ");
-        Serial.println(internal.motorDriverPinIN3);
-        Serial.print("Motor Driver Pin IN4: ");
-        Serial.println(internal.motorDriverPinIN4);
+        Serial.print("Motor Driver Enable Pin: ");
+        Serial.println(internal.motorDriver.enablePin);
+        Serial.print("Motor Driver Direction Pin: ");
+        Serial.println(internal.motorDriver.directionPin);
+        Serial.print("Motor Driver Pulse Pin: ");
+        Serial.println(internal.motorDriver.stepPin);
         Serial.print("RF Receiver Pin: ");
         Serial.println(internal.rfReceiverPin);
         // Motor Params
@@ -179,21 +183,24 @@ void F1_typ::run1Rev() {
         // Determine the step increment based on direction (only allow 1 or -1)
         int stepIncrement = (internal.rotationDirection == 1) ? 1 : -1;
         // Calculate delay based on desired RPM
-        int delayBetweenSteps = 60000 / (internal.stepsPerRev * internal.rpm);          // 60000 is the number of milliseconds in a minute
+        unsigned int delayBetweenSteps = 60000000 / (internal.stepsPerRev * internal.rpm);          // 60000 is the number of milliseconds in a minute
         
-        // Loop through steps
-        for (int j = 0; j < abs(internal.stepsPerRev); j++) {
-            // Determine the current step in the sequence
-            int stepIndex = (j % 4);
+        // Set rotation direction
+        if(internal.rotationDirection) { // rotationDirection is 1
+            digitalWrite(internal.motorDriver.directionPin, HIGH);
+        } 
+        else {
+            digitalWrite(internal.motorDriver.directionPin, LOW);
+        }
 
-            // Set the motor pins according to the step sequence
-            digitalWrite(internal.motorDriverPinIN1, internal.stepSequence[stepIndex][0]);
-            digitalWrite(internal.motorDriverPinIN2, internal.stepSequence[stepIndex][1]);
-            digitalWrite(internal.motorDriverPinIN3, internal.stepSequence[stepIndex][2]);
-            digitalWrite(internal.motorDriverPinIN4, internal.stepSequence[stepIndex][3]);
+        // Move the motor (Loop through steps)
+        for (int j = 0; j < abs(internal.stepsPerRev); j++) {
 
             // Delay to control motor speed based on rpm input
-            delay(delayBetweenSteps); 
+            digitalWrite(internal.motorDriver.stepPin, HIGH);
+            delayMicroseconds(delayBetweenSteps);
+            digitalWrite(internal.motorDriver.stepPin, LOW);
+            delayMicroseconds(delayBetweenSteps);
         }
     } 
     else {

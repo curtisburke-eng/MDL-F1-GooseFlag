@@ -26,16 +26,22 @@ struct F1_status_typ
     bool rfSignal_;                                             // The last scan state of the digital read on the rfReceiverPin
 };
 
+struct TB6600StepperDriver_typ
+{
+    // Pin Type variables
+    int enablePin;                                              // GPIO pin connected to stepper motor driver Enable + terminal
+    int directionPin;                                           // GPIO pin connected to stepper motor driver Direction + terminal
+    int stepPin;                                                // GPIO pin connected to stepper motor driver Pulse + terminal
+};
+
+
 struct F1_internal_typ
 {   
     // Configuration variables
     String configFileName = "config.json";
     
     // Pin Type variables
-    int motorDriverPinIN1;                                      // GPIO pin connected to stepper motor driver IN1 pin
-    int motorDriverPinIN2;                                      // GPIO pin connected to stepper motor driver IN2 pin
-    int motorDriverPinIN3;                                      // GPIO pin connected to stepper motor driver IN3 pin
-    int motorDriverPinIN4;                                      // GPIO pin connected to stepper motor driver IN4 pin
+    TB6600StepperDriver_typ motorDriver;                        // Structure containing the GPIO pins connected to stepper motor driver
     int rfReceiverPin;                                          // GPIO pin connected to RF controller output
 
     // Motor Configuration variables
@@ -43,22 +49,7 @@ struct F1_internal_typ
     int revsPerCycle;                                           // The number of revolutions desired for one cycle (1 cycle being started by an RF input)
     int secBetweenCycles;                                       // The number of seconds between cycles (used in CycleTimer Mode)
     int rpm;                                                    // The speed of rotation in revolutions per min.
-    int rotationDirection;                                      // 1 or -1 for clockwise or counter-clockwise rotation
-
-    /*
-    const int stepSequence[4][4] = {
-        {HIGH, LOW, LOW, HIGH},
-        {HIGH, HIGH, LOW, LOW},
-        {LOW, HIGH, HIGH, LOW},
-        {LOW, LOW, HIGH, HIGH}
-    };
-    */
-   const int stepSequence[4][4] = {
-        {HIGH, LOW, LOW, LOW},
-        {LOW, HIGH, LOW, LOW},
-        {LOW, LOW, HIGH, LOW},
-        {LOW, LOW, LOW, HIGH}
-    };
+    bool rotationDirection;                                     // 1 or 0 for clockwise or counter-clockwise rotation 
 
 };
 
