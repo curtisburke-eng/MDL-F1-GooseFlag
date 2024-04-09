@@ -2,11 +2,11 @@
 #include <Arduino.h>
 #include "F1_typ.h"
 
-// Declare global variables/objects
+// Declare global objects
 F1_typ unit;
 
 // --------------------------------------------------------------------------------------------------------------------
-// Initialization procedure (to be run once)
+// Initialization procedure
 void setup() {
   
   // If in debug mode, start serial comms

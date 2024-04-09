@@ -23,21 +23,20 @@ void F1_typ::loadDefaultConfig() {
 
     // Define Motor configurable values
     internal.stepsPerRev = 200;                                         // Number of steps required for 1 full revolution of the stepper motor
-    internal.revsPerCycle = 3;                                          // Number of times to complete a full revolution
     internal.rpm = 1000;                                                // The speed of rotation in revolutions per min.
     internal.rotationDirection = 0;                                     // 1 or 0 for clockwise or counter-clockwise rotation
 
     // Define Pin Layout
-    internal.motorDriver.enablePin = 0;                                 // GPIO pin connected to stepper motor driver Enable + terminal
     internal.motorDriver.directionPin = 3;                              // GPIO pin connected to stepper motor driver Direction + terminal
     internal.motorDriver.stepPin = 2;                                   // GPIO pin connected to stepper motor driver Pulse + terminal
-
     internal.rfReceiverPin = 8;                                         // GPIO pin connected to RF controller output
 
     // Define Mode(s)
     cmd.useSerialComms = 0;
-
-    internal.secBetweenCycles = 3;                                     // The number of seconds between cycles (used in CycleTimer Mode)
+    
+    // Define Cycle Mode variables 
+    internal.revsPerCycle = 3;                                          // Number of times to complete 1 full revolution
+    internal.secBetweenCycles = 3;                                      // The number of seconds between cycles (used in CycleTimer Mode)
 
     // Set configured status
     status.isConfigured = 1;                                            
