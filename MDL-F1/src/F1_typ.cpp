@@ -1,5 +1,6 @@
 #include "F1_typ.h"
 
+
 void F1_typ::Init() {
     
     if(mode.customConfig){
@@ -10,11 +11,12 @@ void F1_typ::Init() {
         // Assign values based on hardcoded inputs
         loadDefaultConfig();
     }
+    // Set pin mode for inputs/outputs
+    //pinMode(internal.motorDriver.enablePin, OUTPUT);
+    pinMode(internal.motorDriver.directionPin, OUTPUT);
+    pinMode(internal.motorDriver.stepPin, OUTPUT);
+    pinMode(internal.rfReceiverPin, INPUT);
 
-    pinMode(internal.motorDriverPinIN1, OUTPUT);
-    pinMode(internal.motorDriverPinIN2, OUTPUT);
-    pinMode(internal.motorDriverPinIN3, OUTPUT);
-    pinMode(internal.motorDriverPinIN4, OUTPUT);
 
     // Check that only 1 mode is acitve
     checkMode();
@@ -27,14 +29,14 @@ void F1_typ::loadDefaultConfig() {
     // Define Motor configurable values
     internal.stepsPerRev = 200;                                         // Number of steps required for 1 full revolution of the stepper motor
     internal.revsPerCycle = 3;                                          // Number of times to complete a full revolution
-    internal.rpm = 60;                                                  // The speed of rotation in revolutions per min.
-    internal.rotationDirection = 1;                                     // 1 or -1 for clockwise or counter-clockwise rotation
+    internal.rpm = 1000;                                                // The speed of rotation in revolutions per min.
+    internal.rotationDirection = 0;                                     // 1 or 0 for clockwise or counter-clockwise rotation
 
     // Define Pin Layout
-    internal.motorDriverPinIN1 = 2;                                     // GPIO pin connected to stepper motor driver IN1 pin
-    internal.motorDriverPinIN2 = 3;                                     // GPIO pin connected to stepper motor driver IN2 pin
-    internal.motorDriverPinIN3 = 4;                                     // GPIO pin connected to stepper motor driver IN3 pin
-    internal.motorDriverPinIN4 = 5;                                     // GPIO pin connected to stepper motor driver IN4 pin
+    internal.motorDriver.enablePin = 0;                                 // GPIO pin connected to stepper motor driver Enable + terminal
+    internal.motorDriver.directionPin = 3;                              // GPIO pin connected to stepper motor driver Direction + terminal
+    internal.motorDriver.stepPin = 2;                                   // GPIO pin connected to stepper motor driver Pulse + terminal
+
     internal.rfReceiverPin = 8;                                         // GPIO pin connected to RF controller output
 
     // Define Mode(s)
@@ -44,7 +46,7 @@ void F1_typ::loadDefaultConfig() {
     mode.runContinuous = 0;
     mode.turnOffEachCycle = 0;
 
-    internal.secBetweenCycles = 10;                                     // The number of seconds between cycles (used in CycleTimer Mode)
+    internal.secBetweenCycles = 3;                                     // The number of seconds between cycles (used in CycleTimer Mode)
 
     // Set configured status
     status.isConfigured = 1;                                            
@@ -80,10 +82,9 @@ void F1_typ::loadCustomConfig() {
     internal.rotationDirection = json["rotationDirection"];
     
     // Define Pin Layout
-    internal.motorDriverPinIN1 = json["motorDriverPinIN1"];
-    internal.motorDriverPinIN2 = json["motorDriverPinIN2"];
-    internal.motorDriverPinIN3 = json["motorDriverPinIN3"];
-    internal.motorDriverPinIN4 = json["motorDriverPinIN4"];
+    internal.motorDriver.enablePin = json["motorDriver.enablePin"];
+    internal.motorDriver.directionPin = json["motorDriver.directionPin"];
+    internal.motorDriver.stepPin = json["motorDriver.stepPin"];
     internal.rfReceiverPin = json["rfReceiverPin"];
 
     // Define Mode
@@ -92,6 +93,8 @@ void F1_typ::loadCustomConfig() {
     mode.runContinuous = json["runContinuous"];
     mode.turnOffEachCycle = json["turnOffEachCycle"];
     
+    file.close(); 
+
     // Set configured status
     status.isConfigured = 1;
 
@@ -101,14 +104,12 @@ void F1_typ::loadCustomConfig() {
         Serial.println("CUSTOM CONFIGURATION LOADED");
         Serial.println("----------------------------");
         // Pin Layout
-        Serial.print("Motor Driver Pin IN1: ");
-        Serial.println(internal.motorDriverPinIN1);
-        Serial.print("Motor Driver Pin IN2: ");
-        Serial.println(internal.motorDriverPinIN2);
-        Serial.print("Motor Driver Pin IN3: ");
-        Serial.println(internal.motorDriverPinIN3);
-        Serial.print("Motor Driver Pin IN4: ");
-        Serial.println(internal.motorDriverPinIN4);
+        Serial.print("Motor Driver Enable Pin: ");
+        Serial.println(internal.motorDriver.enablePin);
+        Serial.print("Motor Driver Direction Pin: ");
+        Serial.println(internal.motorDriver.directionPin);
+        Serial.print("Motor Driver Pulse Pin: ");
+        Serial.println(internal.motorDriver.stepPin);
         Serial.print("RF Receiver Pin: ");
         Serial.println(internal.rfReceiverPin);
         // Motor Params
@@ -176,24 +177,25 @@ void F1_typ::checkMode() {
 
 void F1_typ::run1Rev() {
     if(status.isConfigured) {
-        // Determine the step increment based on direction (only allow 1 or -1)
-        int stepIncrement = (internal.rotationDirection == 1) ? 1 : -1;
         // Calculate delay based on desired RPM
-        int delayBetweenSteps = 60000 / (internal.stepsPerRev * internal.rpm);          // 60000 is the number of milliseconds in a minute
+        int delayBetweenSteps = (int)floor(60000000 / (internal.stepsPerRev * internal.rpm));
         
-        // Loop through steps
-        for (int j = 0; j < abs(internal.stepsPerRev); j++) {
-            // Determine the current step in the sequence
-            int stepIndex = (j % 4);
+        // Set rotation direction
+        if(internal.rotationDirection) { // rotationDirection is 1
+            digitalWrite(internal.motorDriver.directionPin, HIGH);
+        } 
+        else {
+            digitalWrite(internal.motorDriver.directionPin, LOW);
+        }
 
-            // Set the motor pins according to the step sequence
-            digitalWrite(internal.motorDriverPinIN1, internal.stepSequence[stepIndex][0]);
-            digitalWrite(internal.motorDriverPinIN2, internal.stepSequence[stepIndex][1]);
-            digitalWrite(internal.motorDriverPinIN3, internal.stepSequence[stepIndex][2]);
-            digitalWrite(internal.motorDriverPinIN4, internal.stepSequence[stepIndex][3]);
+        // Move the motor (Loop through steps)
+        for (int j = 0; j < abs(internal.stepsPerRev); j++) {
 
             // Delay to control motor speed based on rpm input
-            delay(delayBetweenSteps); 
+            digitalWrite(internal.motorDriver.stepPin, HIGH);
+            delayMicroseconds(delayBetweenSteps);
+            digitalWrite(internal.motorDriver.stepPin, LOW);
+            delayMicroseconds(delayBetweenSteps);
         }
     } 
     else {
