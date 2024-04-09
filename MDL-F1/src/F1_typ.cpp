@@ -1,5 +1,6 @@
 #include "F1_typ.h"
 
+
 void F1_typ::Init() {
     
     if(mode.customConfig){
@@ -16,10 +17,6 @@ void F1_typ::Init() {
     pinMode(internal.motorDriver.stepPin, OUTPUT);
     pinMode(internal.rfReceiverPin, INPUT);
 
-    pinMode(internal.motorDriverPinIN1, OUTPUT);
-    pinMode(internal.motorDriverPinIN2, OUTPUT);
-    pinMode(internal.motorDriverPinIN3, OUTPUT);
-    pinMode(internal.motorDriverPinIN4, OUTPUT);
 
     // Check that only 1 mode is acitve
     checkMode();
@@ -32,14 +29,14 @@ void F1_typ::loadDefaultConfig() {
     // Define Motor configurable values
     internal.stepsPerRev = 200;                                         // Number of steps required for 1 full revolution of the stepper motor
     internal.revsPerCycle = 3;                                          // Number of times to complete a full revolution
-    internal.rpm = 60;                                                  // The speed of rotation in revolutions per min.
-    internal.rotationDirection = 1;                                     // 1 or -1 for clockwise or counter-clockwise rotation
+    internal.rpm = 1000;                                                // The speed of rotation in revolutions per min.
+    internal.rotationDirection = 0;                                     // 1 or 0 for clockwise or counter-clockwise rotation
 
     // Define Pin Layout
-    internal.motorDriverPinIN1 = 2;                                     // GPIO pin connected to stepper motor driver IN1 pin
-    internal.motorDriverPinIN2 = 3;                                     // GPIO pin connected to stepper motor driver IN2 pin
-    internal.motorDriverPinIN3 = 4;                                     // GPIO pin connected to stepper motor driver IN3 pin
-    internal.motorDriverPinIN4 = 5;                                     // GPIO pin connected to stepper motor driver IN4 pin
+    internal.motorDriver.enablePin = 0;                                 // GPIO pin connected to stepper motor driver Enable + terminal
+    internal.motorDriver.directionPin = 3;                              // GPIO pin connected to stepper motor driver Direction + terminal
+    internal.motorDriver.stepPin = 2;                                   // GPIO pin connected to stepper motor driver Pulse + terminal
+
     internal.rfReceiverPin = 8;                                         // GPIO pin connected to RF controller output
 
     // Define Mode(s)
@@ -49,7 +46,7 @@ void F1_typ::loadDefaultConfig() {
     mode.runContinuous = 0;
     mode.turnOffEachCycle = 0;
 
-    internal.secBetweenCycles = 10;                                     // The number of seconds between cycles (used in CycleTimer Mode)
+    internal.secBetweenCycles = 3;                                     // The number of seconds between cycles (used in CycleTimer Mode)
 
     // Set configured status
     status.isConfigured = 1;                                            
@@ -81,7 +78,7 @@ void F1_typ::loadCustomConfig() {
     internal.stepsPerRev = json["stepsPerRev"];
     internal.revsPerCycle = json["revsPerCycle"];
     internal.secBetweenCycles = json["secBetweenCycles"];
-    internal.delayBetweenSteps = json["delayBetweenSteps"];
+    internal.rpm = json["rpm"];
     internal.rotationDirection = json["rotationDirection"];
     
     // Define Pin Layout
@@ -97,7 +94,7 @@ void F1_typ::loadCustomConfig() {
     mode.turnOffEachCycle = json["turnOffEachCycle"];
     
     file.close(); 
-    
+
     // Set configured status
     status.isConfigured = 1;
 
@@ -180,10 +177,8 @@ void F1_typ::checkMode() {
 
 void F1_typ::run1Rev() {
     if(status.isConfigured) {
-        // Determine the step increment based on direction (only allow 1 or -1)
-        int stepIncrement = (internal.rotationDirection == 1) ? 1 : -1;
         // Calculate delay based on desired RPM
-        unsigned int delayBetweenSteps = 60000000 / (internal.stepsPerRev * internal.rpm);          // 60000 is the number of milliseconds in a minute
+        int delayBetweenSteps = (int)floor(60000000 / (internal.stepsPerRev * internal.rpm));
         
         // Set rotation direction
         if(internal.rotationDirection) { // rotationDirection is 1

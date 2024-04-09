@@ -10,7 +10,7 @@ F1_typ unit;
 void setup() {
   // Set up pre-initialization variables
   unit.internal.configFileName = "config.json";
-  unit.mode.customConfig = 1;
+  unit.mode.customConfig = 0;
 
   // If in debug mode, start serial comms
   if(unit.mode.useSerialComms){
@@ -60,7 +60,8 @@ void loop() {
 
   // Update the last scan value
   unit.status.rfSignal_ = unit.status.rfSignal;
-
+  delay(20);
+  
   return;
 }
 // --------------------------------------------------------------------------------------------------------------------
