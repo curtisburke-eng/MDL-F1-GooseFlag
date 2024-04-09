@@ -10,7 +10,6 @@ struct F1_cmd_typ
 {
     // Commands for desired Modes
     bool useSerialComms;                                        // Command for determining if Serial output is to be used
-    bool useCustomConfig;
 
 };
 
@@ -34,8 +33,6 @@ struct TB6600StepperDriver_typ
 
 struct F1_internal_typ
 {   
-    // Configuration variables
-    String configFileName = "config.json";
     
     // Pin Type variables
     TB6600StepperDriver_typ motorDriver;                        // Structure containing the GPIO pins connected to stepper motor driver
@@ -65,7 +62,6 @@ public:
 
 private:
     void loadDefaultConfig();
-    void loadCustomConfig();
 };
 
 #endif // F1_TYP_H

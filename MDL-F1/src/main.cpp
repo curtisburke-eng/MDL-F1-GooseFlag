@@ -8,10 +8,7 @@ F1_typ unit;
 // --------------------------------------------------------------------------------------------------------------------
 // Initialization procedure (to be run once)
 void setup() {
-  // Set up pre-initialization variables
-  unit.internal.configFileName = "config.json";
-  unit.cmd.useCustomConfig = 0;
-
+  
   // If in debug mode, start serial comms
   if(unit.cmd.useSerialComms){
     Serial.begin(9600); 
